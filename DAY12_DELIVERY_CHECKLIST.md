@@ -1,6 +1,6 @@
 #  Delivery Checklist — Day 12 Lab Submission
 
-> **Student Name:** Nguyen Thanh Dai Khanh
+> **Student Name:** Nguyễn Thành Đại Khánh
 > **Student ID:** 2A202600404
 > **Date:** 17/04/2026
 

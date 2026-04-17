@@ -1,5 +1,9 @@
 # Day 12 Lab - Mission Answers
 
+> **Student Name:** Nguyễn Thành Đại Khánh
+> **Student ID:** 2A202600404
+> **Date:** 17/04/2026
+
 ## Part 1: Localhost vs Production
 
 ### Exercise 1.1: Anti-patterns found in develop/app.py
