@@ -49,39 +49,55 @@ _request_count = 0
 _error_count = 0
 
 # ─────────────────────────────────────────────────────────
-# Simple In-memory Rate Limiter
+# Redis (Stateless) Rate Limiter & Cost Guard
 # ─────────────────────────────────────────────────────────
-_rate_windows: dict[str, deque] = defaultdict(deque)
+try:
+    import redis
+    # Kết nối tới Redis
+    r = redis.from_url(settings.redis_url, decode_responses=True) if settings.redis_url else None
+except (Exception, ImportError) as e:
+    logger.error(f"Redis initialization failed (missing package or bad URL): {e}")
+    r = None
 
 def check_rate_limit(key: str):
-    now = time.time()
-    window = _rate_windows[key]
-    while window and window[0] < now - 60:
-        window.popleft()
-    if len(window) >= settings.rate_limit_per_minute:
+    if not r:
+        logger.warning("Redis not available. Skipping rate limit check.")
+        return
+        
+    now_min = int(time.time() / 60)
+    redis_key = f"rl:{key}:{now_min}"
+    
+    current_count = r.get(redis_key)
+    if current_count and int(current_count) >= settings.rate_limit_per_minute:
         raise HTTPException(
             status_code=429,
             detail=f"Rate limit exceeded: {settings.rate_limit_per_minute} req/min",
             headers={"Retry-After": "60"},
         )
-    window.append(now)
+    
+    pipe = r.pipeline()
+    pipe.incr(redis_key)
+    pipe.expire(redis_key, 60)
+    pipe.execute()
 
-# ─────────────────────────────────────────────────────────
-# Simple Cost Guard
-# ─────────────────────────────────────────────────────────
-_daily_cost = 0.0
-_cost_reset_day = time.strftime("%Y-%m-%d")
-
-def check_and_record_cost(input_tokens: int, output_tokens: int):
-    global _daily_cost, _cost_reset_day
+def check_and_record_cost(user_id: str, input_tokens: int, output_tokens: int):
+    if not r:
+        return
+        
     today = time.strftime("%Y-%m-%d")
-    if today != _cost_reset_day:
-        _daily_cost = 0.0
-        _cost_reset_day = today
-    if _daily_cost >= settings.daily_budget_usd:
+    redis_key = f"cost:{user_id}:{today}"
+    
+    current_cost = float(r.get(redis_key) or 0)
+    if current_cost >= settings.daily_budget_usd:
         raise HTTPException(503, "Daily budget exhausted. Try tomorrow.")
+        
+    # Tính toán cost (GPT-4o-mini rates)
     cost = (input_tokens / 1000) * 0.00015 + (output_tokens / 1000) * 0.0006
-    _daily_cost += cost
+    
+    pipe = r.pipeline()
+    pipe.incrbyfloat(redis_key, cost)
+    pipe.expire(redis_key, 24 * 3600)  # TTL 24h
+    pipe.execute()
 
 # ─────────────────────────────────────────────────────────
 # Auth
@@ -206,7 +222,7 @@ async def ask_agent(
 
     # Budget check
     input_tokens = len(body.question.split()) * 2
-    check_and_record_cost(input_tokens, 0)
+    check_and_record_cost(_key[:8], input_tokens, 0)
 
     logger.info(json.dumps({
         "event": "agent_call",
@@ -217,7 +233,7 @@ async def ask_agent(
     answer = llm_ask(body.question)
 
     output_tokens = len(answer.split()) * 2
-    check_and_record_cost(0, output_tokens)
+    check_and_record_cost(_key[:8], 0, output_tokens)
 
     return AskResponse(
         question=body.question,
@@ -254,13 +270,18 @@ def ready():
 @app.get("/metrics", tags=["Operations"])
 def metrics(_key: str = Depends(verify_api_key)):
     """Basic metrics (protected)."""
+    daily_cost = 0.0
+    if r:
+        today = time.strftime("%Y-%m-%d")
+        daily_cost = float(r.get(f"cost:{_key[:8]}:{today}") or 0)
+        
     return {
         "uptime_seconds": round(time.time() - START_TIME, 1),
         "total_requests": _request_count,
         "error_count": _error_count,
-        "daily_cost_usd": round(_daily_cost, 4),
+        "daily_cost_usd": round(daily_cost, 4),
         "daily_budget_usd": settings.daily_budget_usd,
-        "budget_used_pct": round(_daily_cost / settings.daily_budget_usd * 100, 1),
+        "budget_used_pct": round(daily_cost / settings.daily_budget_usd * 100, 1) if settings.daily_budget_usd > 0 else 0,
     }
 
 
