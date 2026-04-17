@@ -1,10 +1,10 @@
 # Deployment Information
 
 ## Public URL
-https://your-agent.railway.app
+https://day12-ha-tang-cloud-va-deployment-mmft.onrender.com
 
 ## Platform
-Railway
+Render
 
 ## Source Folder
 `06-lab-complete/`
@@ -13,19 +13,19 @@ Railway
 
 ### Health Check
 ```bash
-curl https://your-agent.railway.app/health
-# Expected: {"status":"ok", ...}
+curl https://day12-ha-tang-cloud-va-deployment-mmft.onrender.com/health
+# Actual: {"status":"ok","version":"1.0.0","environment":"production",...}
 ```
 
 ### Readiness Check
 ```bash
-curl https://your-agent.railway.app/ready
-# Expected: {"ready": true}
+curl https://day12-ha-tang-cloud-va-deployment-mmft.onrender.com/ready
+# Actual: {"ready": true}
 ```
 
 ### Authentication Required (Should Fail Without Key)
 ```bash
-curl -X POST https://your-agent.railway.app/ask \
+curl -X POST https://day12-ha-tang-cloud-va-deployment-mmft.onrender.com/ask \
   -H "Content-Type: application/json" \
   -d '{"question": "Hello"}'
 # Expected: 401 Unauthorized
@@ -33,7 +33,7 @@ curl -X POST https://your-agent.railway.app/ask \
 
 ### API Test (With Authentication)
 ```bash
-curl -X POST https://your-agent.railway.app/ask \
+curl -X POST https://day12-ha-tang-cloud-va-deployment-mmft.onrender.com/ask \
   -H "X-API-Key: YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{"question": "Hello"}'
@@ -44,23 +44,25 @@ curl -X POST https://your-agent.railway.app/ask \
 ```bash
 for i in {1..15}; do
   curl -s -o /dev/null -w "%{http_code}\n" \
-    -X POST https://your-agent.railway.app/ask \
+    -X POST https://day12-ha-tang-cloud-va-deployment-mmft.onrender.com/ask \
     -H "X-API-Key: YOUR_KEY" \
     -H "Content-Type: application/json" \
     -d '{"question":"load test"}'
 done
-# Expected: eventually 429
+# Actual during latest run: 200 for the first requests, then 429 for the remaining requests
 ```
 
 ## Environment Variables Set
-- PORT
-- REDIS_URL
+- ENVIRONMENT=production
+- DEBUG=false
+- PORT (provided by Render)
+- REDIS_URL=redis://red-d7h06i1kh4rs73afuqt0:6379
 - AGENT_API_KEY
+- JWT_SECRET
 - OPENAI_API_KEY
 - RATE_LIMIT_PER_MINUTE
 - DAILY_BUDGET_USD
 - APP_VERSION
-- ENVIRONMENT
 
 ## Screenshots
 - [Deployment dashboard](06-lab-complete/screenshots/dashboard.png)

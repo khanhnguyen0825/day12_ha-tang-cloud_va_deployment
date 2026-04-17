@@ -51,8 +51,55 @@
 ## Part 4: API Security
 
 ### Exercise 4.1-4.3: Test results
-- **API Key Auth:** Đã implement thành công. Nếu không có header `X-API-Key` trả về 401. Nếu sai key trả về 403.
-- **Rate Limiting:** Sử dụng Redis (Lazy init) để track request. Limit 10 req/min. Khi vượt quá trả về 429 Too Many Requests.
+- **API Key Auth:**
+```bash
+curl -X POST https://day12-ha-tang-cloud-va-deployment-mmft.onrender.com/ask \
+	-H "Content-Type: application/json" \
+	-d '{"question":"Hello"}'
+```
+Expected: `401 Unauthorized`
+
+- **API Key Success:**
+```bash
+curl -X POST https://day12-ha-tang-cloud-va-deployment-mmft.onrender.com/ask \
+	-H "X-API-Key: 1234" \
+	-H "Content-Type: application/json" \
+	-d '{"question":"Hello"}'
+```
+Actual:
+```json
+{"question":"Hello","answer":"Tôi là AI agent được deploy lên cloud. Câu hỏi của bạn đã được nhận.","model":"gpt-4o-mini","timestamp":"2026-04-17T..."}
+```
+
+- **Rate Limiting:**
+```bash
+for i in {1..15}; do
+	curl -s -o /dev/null -w "%{http_code}\n" \
+		-X POST https://day12-ha-tang-cloud-va-deployment-mmft.onrender.com/ask \
+		-H "X-API-Key: 1234" \
+		-H "Content-Type: application/json" \
+		-d '{"question":"test"}'
+done
+```
+Actual output observed:
+```text
+200
+200
+200
+200
+200
+200
+200
+200
+200
+200
+429
+429
+429
+429
+429
+```
+Note: rate limiting now triggers correctly after Redis was connected.
 
 ### Exercise 4.4: Cost guard implementation
 - **Cách tiếp cận:** Sử dụng `incrbyfloat` trong Redis để cộng dồn chi phí. 
