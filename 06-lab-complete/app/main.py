@@ -26,6 +26,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Security, Depends, Request, Response
 from fastapi.security.api_key import APIKeyHeader
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 import uvicorn
 
@@ -156,23 +157,33 @@ async def request_middleware(request: Request, call_next):
     global _request_count, _error_count
     start = time.time()
     _request_count += 1
+    response: Response | None = None
     try:
-        response: Response = await call_next(request)
-        # Security headers
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        duration = round((time.time() - start) * 1000, 1)
-        logger.info(json.dumps({
-            "event": "request",
-            "method": request.method,
-            "path": request.url.path,
-            "status": response.status_code,
-            "ms": duration,
-        }))
+        response = await call_next(request)
+
+        # Observability/security header steps should never break requests.
+        try:
+            response.headers["X-Content-Type-Options"] = "nosniff"
+            response.headers["X-Frame-Options"] = "DENY"
+            duration = round((time.time() - start) * 1000, 1)
+            logger.info(json.dumps({
+                "event": "request",
+                "method": request.method,
+                "path": request.url.path,
+                "status": response.status_code,
+                "ms": duration,
+            }))
+        except Exception as header_or_log_error:
+            logger.exception("middleware_postprocess_failed")
+
         return response
     except Exception as e:
         _error_count += 1
-        raise
+        logger.exception("request_middleware_failed")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Internal Server Error"},
+        )
 
 # ─────────────────────────────────────────────────────────
 # Models
