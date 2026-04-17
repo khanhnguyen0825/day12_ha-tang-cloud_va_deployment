@@ -14,33 +14,11 @@ Submit a **GitHub repository** containing:
 
 Create a file `MISSION_ANSWERS.md` with your answers to all exercises:
 
-```markdown
-# Day 12 Lab - Mission Answers
-
-## Part 1: Localhost vs Production
-
-### Exercise 1.1: Anti-patterns found
-1. [Your answer]
-2. [Your answer]
-...
-
-### Exercise 1.3: Comparison table
-| Feature | Develop | Production | Why Important? |
-|---------|---------|------------|----------------|
-| Config  | ...     | ...        | ...            |
-...
-
-## Part 2: Docker
-
-### Exercise 2.1: Dockerfile questions
-1. Base image: [Your answer]
-2. Working directory: [Your answer]
-...
-
-### Exercise 2.3: Image size comparison
-- Develop: [X] MB
-- Production: [Y] MB
-- Difference: [Z]%
+- [x] **Part 1: Localhost vs Production** (✅ Completed)
+- [x] **Part 2: Docker** (✅ Completed)
+- [ ] **Part 3: Cloud Deployment** (Đang chờ thực hiện)
+- [x] **Part 4: API Security** (✅ Completed)
+- [x] **Part 5: Scaling & Reliability** (✅ Completed)
 
 ## Part 3: Cloud Deployment
 
@@ -71,32 +49,32 @@ Your final production-ready agent with all files:
 ```
 your-repo/
 ├── app/
-│   ├── main.py              # Main application
-│   ├── config.py            # Configuration
-│   ├── auth.py              # Authentication
-│   ├── rate_limiter.py      # Rate limiting
-│   └── cost_guard.py        # Cost protection
+│   ├── main.py              # Main application (✅ Completed with Redis)
+│   ├── config.py            # Configuration (✅ Completed)
+│   ├── auth.py              # Authentication (✅ Completed)
+│   ├── rate_limiter.py      # Rate limiting (✅ Completed)
+│   └── cost_guard.py        # Cost protection (✅ Completed)
 ├── utils/
 │   └── mock_llm.py          # Mock LLM (provided)
-├── Dockerfile               # Multi-stage build
-├── docker-compose.yml       # Full stack
-├── requirements.txt         # Dependencies
-├── .env.example             # Environment template
-├── .dockerignore            # Docker ignore
-├── railway.toml             # Railway config (or render.yaml)
-└── README.md                # Setup instructions
+├── Dockerfile               # Multi-stage build (✅ Completed)
+├── docker-compose.yml       # Full stack (✅ Completed)
+├── requirements.txt         # Dependencies (✅ Completed)
+├── .env.example             # Environment template (✅ Completed)
+├── .dockerignore            # Docker ignore (✅ Completed)
+├── railway.toml             # Railway config (or render.yaml) (✅ Completed)
+└── README.md                # Setup instructions (✅ Completed)
 ```
 
 **Requirements:**
--  All code runs without errors
--  Multi-stage Dockerfile (image < 500 MB)
--  API key authentication
--  Rate limiting (10 req/min)
--  Cost guard ($10/month)
--  Health + readiness checks
--  Graceful shutdown
--  Stateless design (Redis)
--  No hardcoded secrets
+- [x] All code runs without errors
+- [x] Multi-stage Dockerfile (image < 500 MB)
+- [x] API key authentication
+- [x] Rate limiting (10 req/min)
+- [x] Cost guard ($10/month)
+- [x] Health + readiness checks
+- [x] Graceful shutdown
+- [x] Stateless design (Redis)
+- [x] No hardcoded secrets
 
 ---
 
