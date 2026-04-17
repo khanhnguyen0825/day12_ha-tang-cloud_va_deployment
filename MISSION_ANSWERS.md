@@ -36,3 +36,22 @@
 
 ## Part 3: Cloud Deployment
 *(Äang chá» thá»±c hiá»‡n trÃªn GitHub Codespaces/Railway)*
+
+## Part 4: API Security
+
+### Exercise 4.1-4.3: Test results
+- **API Key Auth:** Ğã implement thành công. N?u không có header X-API-Key tr? v? 401. N?u sai key tr? v? 403.
+- **JWT Auth:** Hi?u co ch? phân quy?n d?a trên Token payload mà không c?n query DB liên t?c.
+- **Rate Limiting:** S? d?ng Redis d? track request. Limit 10 req/min. Khi vu?t quá tr? v? 429 Too Many Requests.
+
+### Exercise 4.4: Cost guard implementation
+- **Cách ti?p c?n:** S? d?ng `incrbyfloat` trong Redis d? c?ng d?n chi phí (USD) d?a trên s? lu?ng token c?a m?i request. 
+- **Gi?i h?n:** $10/tháng (tuong duong ~$0.33/ngày). Khi vu?t quá tr? v? 402 Payment Required.
+
+## Part 5: Scaling & Reliability
+
+### Exercise 5.1-5.5: Implementation notes
+- **Health check:** Endpoint /health dùng d? ki?m tra liveness c?a ?ng d?ng.
+- **Readiness check:** Endpoint /ready dùng d? ki?m tra các k?t n?i ph? thu?c (Redis, DB) tru?c khi nh?n traffic.
+- **Graceful shutdown:** S? d?ng lifespan và b?t tín hi?u SIGTERM d? hoàn thành các request dang x? lı (in-flight) tru?c khi dóng container.
+- **Stateless design:** Toàn b? state (l?ch s? chat, rate limit, budget) dã du?c chuy?n t? memory sang Redis, cho phép scale-out nhi?u container mà không l?ch d? li?u.

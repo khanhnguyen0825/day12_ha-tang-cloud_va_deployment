@@ -21,11 +21,11 @@ class Settings(BaseSettings):
     # Redis (Scaling & Stateless)
     REDIS_URL: str = "redis://localhost:6379/0"
 
-    # Rate Limiting
+    # Rate limiting
     RATE_LIMIT_PER_MINUTE: int = 10
     
-    # Cost Guard
-    MONTHLY_BUDGET_USD: float = 10.0
+    # Cost Guard ($10/month = $0.33/day)
+    MONTHLY_BUDGET_USD: float = 0.33
 
     class Config:
         env_file = ".env"

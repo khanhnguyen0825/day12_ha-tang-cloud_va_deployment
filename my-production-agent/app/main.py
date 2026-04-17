@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 from .config import settings
 from .auth import verify_api_key
 from .rate_limiter import check_rate_limit, redis_client
+from .cost_guard import check_budget, record_cost
 from utils.mock_llm import ask
 
 # Cấu hình Logging tập trung (JSON format)
@@ -63,7 +64,8 @@ def ready():
 async def ask_agent(
     request: Request,
     user_id: str = Depends(verify_api_key),
-    _rate_limit: None = Depends(check_rate_limit)
+    _rate_limit: None = Depends(check_rate_limit),
+    _budget: None = Depends(check_budget)
 ):
     body = await request.json()
     question = body.get("question", "")
@@ -79,6 +81,9 @@ async def ask_agent(
 
     # Gọi Mock LLM
     response = ask(question)
+    
+    # Ghi nhận cost (giả lập token count)
+    record_cost(user_id, len(question)//4, len(response)//4)
 
     logger.info(json.dumps({
         "event": "response_generated",
