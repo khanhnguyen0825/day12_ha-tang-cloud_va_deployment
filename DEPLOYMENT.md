@@ -65,9 +65,7 @@ done
 - APP_VERSION
 
 ## Screenshots
-- [Deployment dashboard](06-lab-complete/screenshots/dashboard.png)
-- [Service running](06-lab-complete/screenshots/running.png)
-- [Test results](06-lab-complete/screenshots/test.png)
+- (06-lab-complete/screenshots/)
 
 ## Validation Notes
 - Điền URL thật sau khi deploy thành công.
